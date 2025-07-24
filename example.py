@@ -1,21 +1,35 @@
 import elotl
+import json
+import requests
 
-@elotl.step
-@elotl.context({
-    'http_requests'
-})
+@elotl.step('extraction')
 def extract(context):
-    pass
+    response = requests.get(context.get('url'))
+    if response.status_code == 200:
+        return [response.json()] 
+    raise RuntimeError(response.text)
 
-@elotl.step
+@elotl.step('calculate_flags_length')
 def transform(context):
-    pass
+    status = context.statuses.get('extraction')
+    if status == elotl.success:
+        for item in context.results.get('extraction'):
+            item['flags_length'] = len(item['flags'])
+    return context.get('extraction').get('result')    
 
 @elotl.step
 def load(context):
-    pass
+    with open('./result.json', 'w') as fw:
+        fw.write(
+            json.dumps(
+                context.results.get('calculate_flags_length')
+            )
+        )
+        fw.close()
 
-config = {
-    'url': 'https://restcountries.com/v3.1/all?fields=name,flags'
-}
-result = elotl.configure(**config).execute(extract >> transform >> load)
+result = elotl.execute(
+    context={
+        'url': 'https://restcountries.com/v3.1/all?fields=name,flags'
+    },
+    steps=[extract >> transform >> load]
+)
