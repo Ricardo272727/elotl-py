@@ -22,7 +22,7 @@ def step(fn):
 
 def depends(dependencies = []):
     def inner(fn):
-        validate_dependencies(dependencies) 
+        validate_dependencies(dependencies)
+        MetadataManager.add(fn, {'dependencies': dependencies})
         return fn
-    MetadataManager.add(inner, { 'dependencies': dependencies })
     return inner

@@ -2,7 +2,7 @@ class MetadataManager:
     DEBUG = True
     @staticmethod
     def extract_dependencies(target):
-        return target.__annotations__['dependencies']
+        return target.__annotations__.get('dependencies', [])
 
     @staticmethod
     def extract_name(target):
